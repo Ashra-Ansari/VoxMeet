@@ -12,7 +12,7 @@ import ScreenShareIcon from "@mui/icons-material/ScreenShare";
 import StopScreenShareIcon from "@mui/icons-material/StopScreenShare";
 import ChatIcon from "@mui/icons-material/Chat";
 import server from "../env";
-
+import { useNavigate } from "react-router-dom";
 const server_url = server;
 
 var connections = {};
@@ -22,6 +22,7 @@ const peerConfigConnections = {
 };
 
 export default function VideoMeetComponent() {
+  const navigate = useNavigate();
   var socketRef = useRef();
   let socketIdRef = useRef();
 
@@ -459,7 +460,7 @@ export default function VideoMeetComponent() {
       let tracks = localVideoref.current.srcObject.getTracks();
       tracks.forEach((track) => track.stop());
     } catch (e) {}
-    window.location.href = "/home";
+    navigate("/home");
   };
 
   let openChat = () => {
