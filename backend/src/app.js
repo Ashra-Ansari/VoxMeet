@@ -5,7 +5,9 @@ import mongoose from "mongoose";
 import { connectToSocket } from "./controllers/socketManager.js ";
 import cors from "cors";
 import userRoutes from "./routes/users.routes.js";
+import dotenv from "dotenv";
 
+dotenv.config();
 const app = express();
 
 const server = createServer(app);
@@ -23,9 +25,7 @@ app.get("/", (req, res) => {
 
 const start = async () => {
   try {
-    const connectionDB = await mongoose.connect(
-      "mongodb+srv://ashra:ashra8228@cluster0.pyxag8b.mongodb.net/voxmeet?appName=Cluster0",
-    );
+    const connectionDB = await mongoose.connect(process.env.MONGO_URL);
     console.log(`MONGO Connected DB Host: ${connectionDB.connection.host}`);
     server.listen(app.get("port"), () => {
       console.log("listening on port 8000");
