@@ -141,36 +141,6 @@ Sensitive configuration values are not hardcoded into the source code.
 
 ---
 
-## 📂 Project Structure
-
-```text
-VoxMeet/
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── contexts/
-│   │   ├── pages/
-│   │   └── ...
-│   ├── package.json
-│   └── ...
-│
-├── backend/
-│   ├── src/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── controllers/
-│   │   └── app.js
-│   ├── .env
-│   ├── .gitignore
-│   └── package.json
-│
-└── README.md
-```
-
-> The exact folder structure may vary depending on the current implementation.
-
----
 
 ## ⚙️ Local Setup
 
@@ -304,26 +274,6 @@ This combination allows VoxMeet to support real-time meetings while keeping sign
 
 ---
 
-## 📚 Key Learning Outcomes
-
-While building VoxMeet, I gained practical experience with:
-
-* Building a full-stack application using React, Node.js, Express, and MongoDB
-* Understanding WebRTC and peer-to-peer communication
-* Implementing WebRTC signaling using Socket.IO
-* Managing real-time events
-* Working with browser media devices
-* Implementing screen sharing
-* Building real-time chat functionality
-* Managing participants in a video meeting
-* Implementing authentication
-* Working with MongoDB and Mongoose
-* Using environment variables for sensitive configuration
-* Deploying full-stack applications using Render
-* Debugging frontend-backend communication issues in production
-
----
-
 ## 💡 Why I Built VoxMeet
 
 I built VoxMeet to go beyond traditional CRUD-based applications and gain practical experience with **real-time communication technologies**.
@@ -341,7 +291,7 @@ Recent Information Technology graduate focused on Full-Stack Web Development and
 ### Connect with me
 
 * GitHub: https://github.com/Ashra-Ansari
-* LinkedIn: Add your LinkedIn profile here
+* LinkedIn: https://www.linkedin.com/in/ashra-ansari-1749312a1/
 
 ---
 
