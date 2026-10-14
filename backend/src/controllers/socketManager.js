@@ -6,7 +6,7 @@ let messages = {};
 export const connectToSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "https://voxmeetfrontend.onrender.com",
+      origin: "*",
       methods: ["GET", "POST"],
       credentials: true,
     },
