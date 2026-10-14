@@ -2,32 +2,27 @@ import { Server } from "socket.io";
 
 let connections = {};
 let messages = {};
-let timeOnline = {};
 
 export const connectToSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: "https://voxmeetfrontend.onrender.com",
       methods: ["GET", "POST"],
-      allowedHeaders: ["*"],
       credentials: true,
     },
   });
 
   io.on("connection", (socket) => {
-    console.log("SOMETHING CONNECTED");
-
     socket.on("join-call", (path) => {
+      if (typeof path !== "string" || !path.trim()) {
+        return;
+      }
       if (connections[path] === undefined) {
         connections[path] = [];
       }
-      connections[path].push(socket.id);
-
-      timeOnline[socket.id] = new Date();
-
-      // connections[path].forEach(elem => {
-      //     io.to(elem)
-      // })
+      if (!connections[path].includes(socket.id)) {
+        connections[path].push(socket.id);
+      }
 
       for (let a = 0; a < connections[path].length; a++) {
         io.to(connections[path][a]).emit(
@@ -50,10 +45,23 @@ export const connectToSocket = (server) => {
     });
 
     socket.on("signal", (toId, message) => {
-      io.to(toId).emit("signal", socket.id, message);
+      const isSameRoom = Object.values(connections).some(
+        (users) => users.includes(socket.id) && users.includes(toId),
+      );
+
+      if (isSameRoom) {
+        io.to(toId).emit("signal", socket.id, message);
+      }
     });
 
     socket.on("chat-message", (data, sender) => {
+      if (typeof data !== "string" || !data.trim() || data.length > 2000) {
+        return;
+      }
+
+      const safeSender =
+        typeof sender === "string" ? sender.slice(0, 100) : "Anonymous";
+
       const [matchingRoom, found] = Object.entries(connections).reduce(
         ([room, isFound], [roomKey, roomValue]) => {
           if (!isFound && roomValue.includes(socket.id)) {
@@ -71,46 +79,41 @@ export const connectToSocket = (server) => {
         }
 
         messages[matchingRoom].push({
-          sender: sender,
+          sender: safeSender,
           data: data,
           "socket-id-sender": socket.id,
         });
-        console.log("message", matchingRoom, ":", sender, data);
+
+        if (messages[matchingRoom].length > 100) {
+          messages[matchingRoom].shift();
+        }
+
+        console.log("message", matchingRoom, ":", safeSender, data);
 
         connections[matchingRoom].forEach((elem) => {
-          io.to(elem).emit("chat-message", data, sender, socket.id);
+          io.to(elem).emit("chat-message", data, safeSender, socket.id);
         });
       }
     });
 
     socket.on("disconnect", () => {
-      var diffTime = Math.abs(timeOnline[socket.id] - new Date());
+      for (const [room, users] of Object.entries(connections)) {
+        const index = users.indexOf(socket.id);
 
-      var key;
+        if (index !== -1) {
+          users.splice(index, 1);
 
-      for (const [k, v] of JSON.parse(
-        JSON.stringify(Object.entries(connections)),
-      )) {
-        for (let a = 0; a < v.length; ++a) {
-          if (v[a] === socket.id) {
-            key = k;
+          for (const userId of users) {
+            io.to(userId).emit("user-left", socket.id);
+          }
 
-            for (let a = 0; a < connections[key].length; ++a) {
-              io.to(connections[key][a]).emit("user-left", socket.id);
-            }
-
-            var index = connections[key].indexOf(socket.id);
-
-            connections[key].splice(index, 1);
-
-            if (connections[key].length === 0) {
-              delete connections[key];
-            }
+          if (users.length === 0) {
+            delete connections[room];
+            delete messages[room];
           }
         }
       }
     });
   });
-
   return io;
 };

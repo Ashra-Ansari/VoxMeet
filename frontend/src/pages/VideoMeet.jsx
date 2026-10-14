@@ -28,6 +28,8 @@ export default function VideoMeetComponent() {
 
   let localVideoref = useRef();
 
+  const videoRef = useRef([]);
+
   let [videoAvailable, setVideoAvailable] = useState(true);
 
   let [audioAvailable, setAudioAvailable] = useState(true);
@@ -52,8 +54,6 @@ export default function VideoMeetComponent() {
 
   let [username, setUsername] = useState("");
 
-  const videoRef = useRef([]);
-
   let [videos, setVideos] = useState([]);
 
   // TODO
@@ -62,16 +62,15 @@ export default function VideoMeetComponent() {
   // }
 
   useEffect(() => {
-    console.log("HELLO");
     getPermissions();
-  });
+  }, []);
 
-  let getDislayMedia = () => {
+  let getDisplayMedia = () => {
     if (screen) {
       if (navigator.mediaDevices.getDisplayMedia) {
         navigator.mediaDevices
           .getDisplayMedia({ video: true, audio: true })
-          .then(getDislayMediaSuccess)
+          .then(getDisplayMediaSuccess)
           .then((stream) => {})
           .catch((e) => console.log(e));
       }
@@ -85,10 +84,8 @@ export default function VideoMeetComponent() {
       });
       if (videoPermission) {
         setVideoAvailable(true);
-        console.log("Video permission granted");
       } else {
         setVideoAvailable(false);
-        console.log("Video permission denied");
       }
 
       const audioPermission = await navigator.mediaDevices.getUserMedia({
@@ -96,10 +93,8 @@ export default function VideoMeetComponent() {
       });
       if (audioPermission) {
         setAudioAvailable(true);
-        console.log("Audio permission granted");
       } else {
         setAudioAvailable(false);
-        console.log("Audio permission denied");
       }
 
       if (navigator.mediaDevices.getDisplayMedia) {
@@ -128,9 +123,9 @@ export default function VideoMeetComponent() {
   useEffect(() => {
     if (video !== undefined && audio !== undefined) {
       getUserMedia();
-      console.log("SET STATE HAS ", video, audio);
     }
   }, [video, audio]);
+
   let getMedia = () => {
     setVideo(videoAvailable);
     setAudio(audioAvailable);
@@ -220,8 +215,7 @@ export default function VideoMeetComponent() {
     }
   };
 
-  let getDislayMediaSuccess = (stream) => {
-    console.log("HERE");
+  let getDisplayMediaSuccess = (stream) => {
     try {
       window.localStream.getTracks().forEach((track) => track.stop());
     } catch (e) {
@@ -344,16 +338,11 @@ export default function VideoMeetComponent() {
 
           // Wait for their video stream
           connections[socketListId].onaddstream = (event) => {
-            console.log("BEFORE:", videoRef.current);
-            console.log("FINDING ID: ", socketListId);
-
             let videoExists = videoRef.current.find(
               (video) => video.socketId === socketListId,
             );
 
             if (videoExists) {
-              console.log("FOUND EXISTING");
-
               // Update the stream of the existing video
               setVideos((videos) => {
                 const updatedVideos = videos.map((video) =>
@@ -366,7 +355,6 @@ export default function VideoMeetComponent() {
               });
             } else {
               // Create a new video
-              console.log("CREATING NEW");
               let newVideo = {
                 socketId: socketListId,
                 stream: event.stream,
@@ -448,7 +436,7 @@ export default function VideoMeetComponent() {
 
   useEffect(() => {
     if (screen !== undefined) {
-      getDislayMedia();
+      getDisplayMedia();
     }
   }, [screen]);
   let handleScreen = () => {

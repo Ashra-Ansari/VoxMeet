@@ -1,86 +1,120 @@
 import httpStatus from "http-status";
 import { User } from "../models/user.model.js";
-import bcrypt, { hash } from "bcrypt";
-
-import crypto from "crypto";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { Meeting } from "../models/meeting.model.js";
-const login = async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).json({ message: "Please Provide" });
-  }
-
-  try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res
-        .status(httpStatus.NOT_FOUND)
-        .json({ message: "User Not Found" });
-    }
-
-    let isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-    if (isPasswordCorrect) {
-      let token = crypto.randomBytes(20).toString("hex");
-
-      user.token = token;
-      await user.save();
-      return res.status(httpStatus.OK).json({ token: token });
-    } else {
-      return res
-        .status(httpStatus.UNAUTHORIZED)
-        .json({ message: "Invalid Username or password" });
-    }
-  } catch (e) {
-    return res.status(500).json({ message: `Something went wrong ${e}` });
-  }
-};
 
 const register = async (req, res) => {
   const { name, username, password } = req.body;
 
+  if (!name || !username || !password) {
+    return res.status(400).json({
+      message: "Name, username and password are required",
+    });
+  }
+
   try {
     const existingUser = await User.findOne({ username });
+
     if (existingUser) {
-      return res
-        .status(httpStatus.FOUND)
-        .json({ message: "User already exists" });
+      return res.status(409).json({
+        message: "User already exists",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      name: name,
-      username: username,
+      name,
+      username,
       password: hashedPassword,
     });
 
     await newUser.save();
 
-    res.status(httpStatus.CREATED).json({ message: "User Registered" });
+    return res.status(201).json({
+      message: "User Registered",
+    });
   } catch (e) {
-    res.json({ message: `Something went wrong ${e}` });
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+const login = async (req, res) => {
+  const { username, password } = req.body;
+
+  if (
+    typeof username !== "string" ||
+    typeof password !== "string" ||
+    !username.trim() ||
+    !password
+  ) {
+    return res.status(400).json({
+      message: "Valid username and password are required",
+    });
+  }
+  try {
+    const user = await User.findOne({ username });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        message: "Invalid username or password",
+      });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    return res.status(httpStatus.OK).json({ token });
+  } catch (e) {
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
 const getUserHistory = async (req, res) => {
-  const { token } = req.query;
-
   try {
-    const user = await User.findOne({ token: token });
-    const meetings = await Meeting.find({ user_id: user.username });
-    res.json(meetings);
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    const meetings = await Meeting.find({
+      user_id: user.username,
+    });
+
+    return res.status(200).json(meetings);
   } catch (e) {
-    res.json({ message: `Something went wrong ${e}` });
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
 const addToHistory = async (req, res) => {
-  const { token, meeting_code } = req.body;
+  const { meeting_code } = req.body;
+
+  if (typeof meeting_code !== "string" || !meeting_code.trim()) {
+    return res.status(400).json({
+      message: "Invalid meeting code",
+    });
+  }
 
   try {
-    const user = await User.findOne({ token: token });
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
 
     const newMeeting = new Meeting({
       user_id: user.username,
@@ -89,10 +123,13 @@ const addToHistory = async (req, res) => {
 
     await newMeeting.save();
 
-    res.status(httpStatus.CREATED).json({ message: "Added code to history" });
+    return res.status(201).json({
+      message: "Added code to history",
+    });
   } catch (e) {
-    res.json({ message: `Something went wrong ${e}` });
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
-
 export { login, register, getUserHistory, addToHistory };
