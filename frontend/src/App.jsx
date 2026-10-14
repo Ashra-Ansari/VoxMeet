@@ -6,20 +6,29 @@ import { AuthProvider } from "./contexts/AuthProvider";
 import VideoMeetComponent from "./pages/VideoMeet";
 import HomeComponent from "./pages/home";
 import History from "./pages/history";
+import { Navigate } from "react-router-dom";
 
 function App() {
+  const isLoggedIn = () => !!localStorage.getItem("token");
   return (
     <div className="App">
       <Router>
         <AuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
-
             <Route path="/auth" element={<Authentication />} />
-
             <Route path="/home" element={<HomeComponent />} />
             <Route path="/history" element={<History />} />
-            <Route path="/:url" element={<VideoMeetComponent />} />
+            <Route
+              path="/:url"
+              element={
+                isLoggedIn() ? (
+                  <VideoMeetComponent />
+                ) : (
+                  <Navigate to="/auth" replace />
+                )
+              }
+            />{" "}
           </Routes>
         </AuthProvider>
       </Router>
