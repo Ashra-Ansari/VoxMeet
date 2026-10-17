@@ -1,0 +1,39 @@
+.history-card {
+  margin-bottom: 16px;
+  border-radius: 12px !important;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.history-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.history-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.history-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.delete-button {
+  color: #e53935 !important;
+  font-size: 22px !important;
+  flex-shrink: 0;
+}
+
+.delete-button:hover {
+  background-color: rgba(229, 57, 53, 0.1) !important;
+}
+@media (max-width: 480px) {
+  .history-card-content {
+    padding: 12px !important;
+  }
+}

@@ -21,6 +21,7 @@
 }
 
 .landingPageContainer nav .navlist {
+  font-size: 1.25rem;
   display: flex;
   gap: 1.6rem;
   cursor: pointer;

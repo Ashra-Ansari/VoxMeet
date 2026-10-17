@@ -132,4 +132,39 @@ const addToHistory = async (req, res) => {
     });
   }
 };
-export { login, register, getUserHistory, addToHistory };
+
+const deleteHistory = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    const deletedMeeting = await Meeting.findOneAndDelete({
+      _id: id,
+      user_id: user.username,
+    });
+
+    if (!deletedMeeting) {
+      return res.status(404).json({
+        message: "Meeting not found or you are not authorized to delete it",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Meeting deleted successfully",
+    });
+  } catch (err) {
+    console.error("Delete history error:", err);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+export { login, register, getUserHistory, addToHistory, deleteHistory };
